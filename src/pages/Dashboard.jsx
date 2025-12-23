@@ -19,7 +19,11 @@ const CourseCard = ({ course }) => (
 
         <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Outcome: {course.outcome}</p>
 
-        <button className="btn-primary" style={{ padding: '8px 16px', fontSize: '0.9rem', alignSelf: 'flex-start', marginTop: 'auto' }}>
+        <button
+            className="btn-primary"
+            style={{ padding: '8px 16px', fontSize: '0.9rem', alignSelf: 'flex-start', marginTop: 'auto' }}
+            onClick={() => window.open(course.link, '_blank')}
+        >
             Start Course
         </button>
     </div>
