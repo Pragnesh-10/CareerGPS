@@ -31,9 +31,10 @@ const Header = () => {
                 <div
                     onClick={() => navigate('/')}
                     className="logo-container"
+                    style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
                 >
-                    <span className="logo-dot"></span>
-                    CareerAI
+                    <img src="/logo.png" alt="SkillGPS" style={{ height: '32px', width: 'auto' }} />
+                    SkillGPS
                 </div>
 
                 <div className="header-right">
