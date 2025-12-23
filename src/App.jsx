@@ -9,10 +9,13 @@ import Dashboard from './pages/Dashboard';
 import Experts from './pages/Experts';
 import Subscription from './pages/Subscription';
 import Progress from './pages/Progress';
+import Chatbot from './components/common/Chatbot';
+import Header from './components/common/Header';
 
 function App() {
   return (
     <Router>
+      <Header />
       <Routes>
         <Route path="/" element={<Welcome />} />
         <Route path="/survey" element={<Survey />} />
@@ -25,6 +28,7 @@ function App() {
           <Route path="/subscription" element={<Subscription />} />
         </Route>
       </Routes>
+      <Chatbot />
     </Router>
   );
 }

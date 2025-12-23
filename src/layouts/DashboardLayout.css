@@ -1,0 +1,8 @@
+.dashboard-layout {
+    min-height: 100vh;
+    background: var(--bg-dark);
+}
+
+.main-content {
+    padding: 24px 0;
+}
