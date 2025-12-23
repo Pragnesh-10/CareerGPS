@@ -52,8 +52,22 @@ const Results = () => {
     return (
         <div className="container" style={{ minHeight: '100vh', paddingTop: '60px', paddingBottom: '60px' }}>
             <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-                <h1 style={{ fontSize: '2.5rem', marginBottom: '16px' }}>Your Perfect Career Matches</h1>
-                <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>Based on your skills, interests, and personality, these are your top domains.</p>
+                <motion.h1
+                    style={{ fontSize: '2.5rem', marginBottom: '16px' }}
+                    initial={{ y: -20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.5 }}
+                >
+                    Your Perfect Career Matches
+                </motion.h1>
+                <motion.p
+                    style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}
+                    initial={{ y: -20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.2, duration: 0.5 }}
+                >
+                    Based on your skills, interests, and personality, these are your top domains.
+                </motion.p>
             </div>
 
             <motion.div
@@ -95,13 +109,15 @@ const Results = () => {
                                         'A great career path matching your logical and analytical skills.'}
                         </p>
 
-                        <button
+                        <motion.button
                             className="btn-primary"
                             style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '8px' }}
                             onClick={() => handleDomainSelect(domain)}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
                         >
                             Start Learning Path
-                        </button>
+                        </motion.button>
 
                         {index === 0 && (
                             <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(16, 185, 129, 0.2)', color: '#10b981', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
