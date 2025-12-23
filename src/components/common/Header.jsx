@@ -38,9 +38,6 @@ const Header = () => {
 
                 <div className="header-right">
                     <nav className="nav-links">
-                        <Link to="/progress" className={`nav-link ${location.pathname === '/progress' ? 'active' : ''}`}>
-                            Progress
-                        </Link>
                         <Link to="/experts" className={`nav-link ${location.pathname === '/experts' ? 'active' : ''}`}>
                             Experts
                         </Link>
@@ -59,7 +56,6 @@ const Header = () => {
 
                         {menuOpen && (
                             <div className="user-dropdown">
-                                <MenuItem icon={TrendingUp} label="Progress" onClick={() => handleMenuClick('/progress')} />
                                 <MenuItem icon={Users} label="Experts" onClick={() => handleMenuClick('/experts')} />
                                 <MenuItem icon={CreditCard} label="Subscription" onClick={() => handleMenuClick('/subscription')} />
                                 <MenuItem icon={Share2} label="Refer Now" onClick={handleReferral} />
