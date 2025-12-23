@@ -21,6 +21,10 @@ const Header = () => {
         alert('Referral link copied to clipboard!');
     };
 
+    if (location.pathname === '/' || location.pathname === '/survey') {
+        return null;
+    }
+
     return (
         <header className="global-header">
             <div className="container header-container">

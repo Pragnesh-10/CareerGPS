@@ -24,6 +24,10 @@ const Survey = () => {
     };
 
     const handleFinish = () => {
+        // Reset progress for new journey
+        localStorage.removeItem('completedCourses');
+        localStorage.removeItem('enrolledCourses');
+
         // Here we would normally call an API or process the data
         // For now, we mock valid domains based on data
         navigate('/results', { state: { formData } });
