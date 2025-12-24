@@ -5,7 +5,7 @@ import joblib
 import numpy as np
 from fastapi.middleware.cors import CORSMiddleware
 
-MODEL_PATH = '../ml/models/rf_baseline.joblib'
+MODEL_PATH = 'models/rf_baseline.joblib'
 
 app = FastAPI(title='CareerGPS ML Inference')
 app.add_middleware(

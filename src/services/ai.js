@@ -1,49 +1,30 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import OpenAI from "openai";
+// Simplified AI service - Local Logic Only
 
-// Initialize APIs if keys are present
-const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY;
-const openaiApiKey = import.meta.env.VITE_OPENAI_API_KEY;
+export const generateAIResponse = async (prompt, provider = 'local') => {
+    // Mock response to simulate AI processing without external calls
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
-let genAI;
-let openai;
+    const lowerPrompt = prompt.toLowerCase();
 
-if (geminiApiKey) {
-    genAI = new GoogleGenerativeAI(geminiApiKey);
-}
-
-if (openaiApiKey) {
-    openai = new OpenAI({
-        apiKey: openaiApiKey,
-        dangerouslyAllowBrowser: true // For client-side demo purposes
-    });
-}
-
-export const generateAIResponse = async (prompt, provider = 'gemini') => {
-    try {
-        if (provider === 'gemini') {
-            if (!genAI) throw new Error("Gemini API Key missing");
-            const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            return response.text();
-        }
-        else if (provider === 'openai') {
-            if (!openai) throw new Error("OpenAI API Key missing");
-            const completion = await openai.chat.completions.create({
-                messages: [{ role: "user", content: prompt }],
-                model: "gpt-3.5-turbo",
-            });
-            return completion.choices[0].message.content;
-        }
-    } catch (error) {
-        console.error("AI Error:", error);
-        return `Error: ${error.message}. Please checking your API keys.`;
+    if (lowerPrompt.includes('hello') || lowerPrompt.includes('hi')) {
+        return "Hello! I'm your offline Career Assistant. How can I help you navigate your career path today?";
     }
+    if (lowerPrompt.includes('python')) {
+        return "Python is a fantastic language for Data Science, Backend Development, and AI. I recommend starting with the 'Python for Everybody' course listed in your dashboard.";
+    }
+    if (lowerPrompt.includes('recommend') || lowerPrompt.includes('career')) {
+        return "I can help you find the right career path. Have you taken our skills survey yet? That's the best way to get personalized recommendations.";
+    }
+    if (lowerPrompt.includes('job') || lowerPrompt.includes('interview')) {
+        return "For interview prep, I suggest focusing on Data Structures & Algorithms. We also have expert mentors available to conduct mock interviews!";
+    }
+
+    return "I'm currently running in offline mode to protect your privacy. Use the Dashboard to explore courses, or the 'Experts' tab to connect with a human mentor!";
 };
 
 // Call the server-side ML inference API. Falls back to local rule-based engine if the API is unreachable.
 export const getCareerRecommendations = async (formData) => {
+    // 1. Try Python ML API (if running)
     const base = import.meta.env.VITE_ML_API_BASE || 'http://localhost:8000';
     try {
         const res = await fetch(`${base}/predict`, {
@@ -56,9 +37,9 @@ export const getCareerRecommendations = async (formData) => {
         return json.predictions; // [{ career, prob }, ...]
     } catch (err) {
         console.warn('ML API failed, falling back to local engine:', err.message);
-        // fallback to local rule-based engine
+
+        // 2. Fallback to Local Vector Space Model (VSM)
         const { getRecommendations } = await import('../utils/recommendationEngine');
-        const recs = getRecommendations(formData);
-        return recs.map(d => ({ career: d, prob: 1.0 }));
+        return getRecommendations(formData);
     }
 };
