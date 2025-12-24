@@ -1,5 +1,6 @@
 import { useNavigate, Outlet } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import VisitorCounter from '../components/common/VisitorCounter';
 import './DashboardLayout.css';
 
 const DashboardLayout = () => {
@@ -36,8 +37,11 @@ const DashboardLayout = () => {
                 </button>
             </div>
             {/* Main Content */}
-            <main className="main-content" style={{ marginTop: '0' }}>
-                <Outlet />
+            <main className="main-content" style={{ marginTop: '0', display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 100px)' }}>
+                <div style={{ flex: 1 }}>
+                    <Outlet />
+                </div>
+                <VisitorCounter />
             </main>
         </div>
     );

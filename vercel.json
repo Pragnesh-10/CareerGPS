@@ -1,0 +1,16 @@
+{
+    "rewrites": [
+        {
+            "source": "/predict",
+            "destination": "/server/app.py"
+        },
+        {
+            "source": "/visitor-count",
+            "destination": "/server/app.py"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
+        }
+    ]
+}

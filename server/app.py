@@ -70,3 +70,32 @@ def predict(s: Survey):
         results.append({'career': classes[i], 'prob': float(probs[i])})
 
     return {'predictions': results}
+
+VISITOR_FILE = os.path.join(BASE_DIR, 'visitor_count.txt')
+
+@app.get('/visitor-count')
+def visitor_count():
+    count = 0
+    if os.path.exists(VISITOR_FILE):
+        try:
+            with open(VISITOR_FILE, 'r') as f:
+                content = f.read().strip()
+                if content:
+                    count = int(content)
+        except Exception:
+            pass # fallback to 0 if error
+
+    count += 1
+    
+    try:
+        # Note: On Vercel (serverless), local file writes are ephemeral.
+        # This count will reset frequently. For permanent storage, use Vercel KV or a database.
+        with open(VISITOR_FILE, 'w') as f:
+            f.write(str(count))
+    except (OSError, PermissionError):
+        # Gracefully handle read-only file systems
+        pass
+    except Exception:
+        pass 
+
+    return {'count': count}
