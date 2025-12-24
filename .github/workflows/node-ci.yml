@@ -20,4 +20,4 @@ jobs:
           npm ci --legacy-peer-deps
       - name: Run frontend tests
         run: |
-          npm test --silent
+          npm test -- --run

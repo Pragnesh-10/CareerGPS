@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import tempfile
 import subprocess
@@ -47,6 +48,6 @@ def test_train_saves_model(tmp_path):
     make_small_jsonl(str(data_path))
 
     # Run training script
-    res = subprocess.run(['python', 'train.py', '--input', str(data_path), '--out', str(model_path), '--test-size', '0.5', '--cv-folds', '2'], cwd=os.path.join(os.getcwd()), capture_output=True, text=True)
+    res = subprocess.run([sys.executable, 'ml/train.py', '--input', str(data_path), '--out', str(model_path), '--test-size', '0.5', '--cv-folds', '2', '--n-jobs', '1'], cwd=os.path.join(os.getcwd()), capture_output=True, text=True)
     assert res.returncode == 0, f"Training script failed: {res.stdout}\n{res.stderr}"
     assert model_path.exists()

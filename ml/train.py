@@ -56,6 +56,7 @@ def main():
     parser.add_argument('--out', default='ml/models/rf_baseline.joblib')
     parser.add_argument('--test-size', type=float, default=0.2)
     parser.add_argument('--cv-folds', type=int, default=5, help='Number of cross-validation folds')
+    parser.add_argument('--n-jobs', type=int, default=-1, help='Number of jobs for parallel processing')
     args = parser.parse_args()
 
     print(f"Loading data from {args.input}...")
@@ -83,14 +84,14 @@ def main():
     # Base pipeline
     pipeline = Pipeline([
         ('pre', preprocessor),
-        ('rf', RandomForestClassifier(random_state=42, n_jobs=-1))
+        ('rf', RandomForestClassifier(random_state=42, n_jobs=args.n_jobs))
     ])
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=args.test_size, random_state=42, stratify=y)
     
     # --- 1. Cross-Validation on default model ---
     print(f"Running {args.cv_folds}-fold Cross-Validation on default model...")
-    cv_scores = cross_val_score(pipeline, X_train, y_train, cv=args.cv_folds, n_jobs=-1)
+    cv_scores = cross_val_score(pipeline, X_train, y_train, cv=args.cv_folds, n_jobs=args.n_jobs)
     print(f"Mean CV Accuracy: {cv_scores.mean():.4f} (+/- {cv_scores.std() * 2:.4f})")
 
     # --- 2. Hyperparameter Tuning (GridSearchCV) ---
@@ -102,7 +103,7 @@ def main():
         'rf__class_weight': [None, 'balanced']
     }
     
-    grid_search = GridSearchCV(pipeline, param_grid, cv=3, n_jobs=-1, verbose=1, scoring='accuracy')
+    grid_search = GridSearchCV(pipeline, param_grid, cv=args.cv_folds, n_jobs=args.n_jobs, verbose=1, scoring='accuracy')
     grid_search.fit(X_train, y_train)
 
     print(f"Best Parameters: {grid_search.best_params_}")
