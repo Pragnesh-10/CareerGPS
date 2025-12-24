@@ -15,12 +15,13 @@ SAMPLE = {
 
 
 def test_predict_returns_200_and_predictions():
-    res = client.post('/predict', json=SAMPLE)
-    assert res.status_code == 200
-    body = res.json()
-    assert 'predictions' in body
-    assert isinstance(body['predictions'], list)
-    assert len(body['predictions']) >= 1
-    # Each prediction should have career & prob
-    p = body['predictions'][0]
-    assert 'career' in p and 'prob' in p
+    with TestClient(app) as client:
+        res = client.post('/predict', json=SAMPLE)
+        assert res.status_code == 200
+        body = res.json()
+        assert 'predictions' in body
+        assert isinstance(body['predictions'], list)
+        assert len(body['predictions']) >= 1
+        # Each prediction should have career & prob
+        p = body['predictions'][0]
+        assert 'career' in p and 'prob' in p

@@ -1,13 +1,31 @@
 from fastapi import FastAPI
+from contextlib import asynccontextmanager
 from pydantic import BaseModel
 from typing import Dict, Any, List
 import joblib
 import numpy as np
 from fastapi.middleware.cors import CORSMiddleware
 
-MODEL_PATH = 'models/rf_baseline.joblib'
+import os
 
-app = FastAPI(title='CareerGPS ML Inference')
+# Resolve path relative to this file
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, 'models', 'rf_baseline.joblib')
+
+from contextlib import asynccontextmanager
+
+model = None
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global model
+    # Load model on startup
+    data = joblib.load(MODEL_PATH)
+    model = data['model_pipeline']
+    yield
+    # Clean up on shutdown if needed
+
+app = FastAPI(title='CareerGPS ML Inference', lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -21,12 +39,6 @@ class Survey(BaseModel):
     workStyle: Dict[str, Any]
     intent: Dict[str, Any]
     confidence: Dict[str, int]
-
-@app.on_event('startup')
-def load_model():
-    global model
-    data = joblib.load(MODEL_PATH)
-    model = data['model_pipeline']
 
 @app.post('/predict')
 def predict(s: Survey):
