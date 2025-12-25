@@ -1,4 +1,3 @@
 fastapi
-joblib
-
-scikit-learn
+onnxruntime
+numpy
