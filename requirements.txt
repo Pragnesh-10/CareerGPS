@@ -1,3 +1,7 @@
 fastapi
 onnxruntime
 numpy
+httpx
+pytest
+uvicorn[standard]
+python-multipart
