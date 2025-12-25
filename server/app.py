@@ -1,42 +1,14 @@
 from fastapi import FastAPI
-from contextlib import asynccontextmanager
 from pydantic import BaseModel
 from typing import Dict, Any, List
-import numpy as np
-import onnxruntime as ort
-import json
-import os
 from fastapi.middleware.cors import CORSMiddleware
+import os
 
 # Resolve path relative to this file
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, 'models', 'rf_baseline.onnx')
-FEATURES_PATH = os.path.join(BASE_DIR, 'models', 'model_features.json')
 
-model_session = None
-feature_map = {}
+app = FastAPI(title='CareerGPS Prediction (Rule-Based)')
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    global model_session, feature_map
-    try:
-        # Load ONNX model
-        model_session = ort.InferenceSession(MODEL_PATH)
-        
-        # Load feature mapping
-        with open(FEATURES_PATH, 'r') as f:
-            features_list = json.load(f)
-            feature_map = {name: i for i, name in enumerate(features_list)}
-            
-        print(f"Loaded ONNX model and {len(feature_map)} features.")
-    except Exception as e:
-        print(f"Error loading model: {e}")
-        # Consider whether to fail startup or allow running without model
-        pass
-    yield
-    # Clean up on shutdown if needed
-
-app = FastAPI(title='CareerGPS ML Inference', lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -51,69 +23,72 @@ class Survey(BaseModel):
     intent: Dict[str, Any]
     confidence: Dict[str, int]
 
+# --- Rule-Based Knowledge Base ---
+
+CAREER_PROFILES = {
+    "Data Scientist": {
+        "keywords": ["math", "logic", "numbers", "research", "explaining"],
+        "bonus": {"nature": "research", "roleType": "Desk Job"}
+    },
+    "Frontend Developer": {
+        "keywords": ["design", "building", "coding", "art"],
+        "bonus": {"nature": "creative", "roleType": "Desk Job"}
+    },
+    "Backend Developer": {
+        "keywords": ["logic", "building", "coding", "numbers"],
+        "bonus": {"nature": "applied", "roleType": "Desk Job"}
+    },
+    "Product Manager": {
+        "keywords": ["communication", "explaining", "leadership", "people", "business"],
+        "bonus": {"nature": "management", "roleType": "Meetings"}
+    },
+    "UX/UI Designer": {
+        "keywords": ["design", "art", "psychology", "communication"],
+        "bonus": {"nature": "creative", "roleType": "Desk Job"}
+    }
+}
+
 @app.post('/predict')
 def predict(s: Survey):
-    if model_session is None:
-        return {'error': 'Model not loaded'}
+    scores = {career: 0.0 for career in CAREER_PROFILES}
 
-    # 1. Construct raw dictionary (matching training logic)
-    raw_row = {}
-    # interests
-    for k, v in s.interests.items():
-        raw_row[f'int_{k}'] = int(bool(v))
-    # confidences
-    for k, v in s.confidence.items():
-        raw_row[f'conf_{k}'] = int(v)
-    # workStyle
-    for k, v in s.workStyle.items():
-        raw_row[f'ws_{k}'] = v
-    # intent
-    for k, v in s.intent.items():
-        raw_row[f'intent_{k}'] = v
+    # 1. Interest Scoring
+    for interest, active in s.interests.items():
+        if active:
+            for career, profile in CAREER_PROFILES.items():
+                if interest in profile["keywords"]:
+                    scores[career] += 1.0
 
-    # 2. Vectorize (Manual DictVectorizer)
-    num_features = len(feature_map)
-    input_vector = np.zeros((1, num_features), dtype=np.float32)
+    # 2. Confidence Scoring (Weighted)
+    for skill, level in s.confidence.items():
+        # High confidence (6+) boosts related careers
+        if level >= 6:
+            for career, profile in CAREER_PROFILES.items():
+                if skill in profile["keywords"]:
+                    scores[career] += 0.5  # Boost for skill confidence
+
+    # 3. Work Style/Intent Bonus
+    for career, profile in CAREER_PROFILES.items():
+        bonus = profile["bonus"]
+        # Check intent nature
+        if "nature" in s.intent and s.intent["nature"] == bonus.get("nature"):
+            scores[career] += 1.0
+        # Check role type
+        if "roleType" in s.workStyle and s.workStyle["roleType"] == bonus.get("roleType"):
+            scores[career] += 0.5
+
+    # Sort results
+    sorted_careers = sorted(scores.items(), key=lambda x: x[1], reverse=True)
     
-    for k, v in raw_row.items():
-        if isinstance(v, str):
-            # Categorical string feature: becomes key=value
-            feat_name = f"{k}={v}"
-            val = 1.0
-        else:
-            # Numeric feature: keep key
-            feat_name = k
-            val = float(v)
-            
-        if feat_name in feature_map:
-            idx = feature_map[feat_name]
-            input_vector[0, idx] = val
-
-    # 3. Inference
-    input_name = model_session.get_inputs()[0].name
-    # Output structure: [label, probabilities_map] (zipmap=True default)
-    # or [label, probabilities_tensor] (if zipmap=False)
+    # Normalize approx probability (softmax-ish or just ratio)
+    total_score = sum(score for _, score in sorted_careers) or 1
     
-    try:
-        # Run inference
-        outputs = model_session.run(None, {input_name: input_vector})
-        
-        # outputs[0] is the predicted label
-        # outputs[1] is the probability map (list of dicts)
-        probs_map = outputs[1][0] # Dict[label, probability]
-        
-        # Sort by probability
-        sorted_probs = sorted(probs_map.items(), key=lambda item: item[1], reverse=True)
-        
-        # Get top 3
-        top3 = sorted_probs[:3]
-        results = [{'career': k, 'prob': float(v)} for k, v in top3]
-        
-        return {'predictions': results}
-        
-    except Exception as e:
-        print(f"Inference error: {e}")
-        return {'error': str(e)}
+    results = []
+    for career, score in sorted_careers[:3]:
+        prob = round(score / total_score, 2) if total_score > 0 else 0.0
+        results.append({'career': career, 'prob': prob})
+
+    return {'predictions': results}
 
 VISITOR_FILE = os.path.join(BASE_DIR, 'visitor_count.txt')
 
