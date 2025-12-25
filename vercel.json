@@ -1,4 +1,7 @@
 {
+    "framework": "vite",
+    "buildCommand": "npm run build",
+    "outputDirectory": "dist",
     "rewrites": [
         {
             "source": "/predict",
@@ -12,5 +15,10 @@
             "source": "/(.*)",
             "destination": "/index.html"
         }
-    ]
+    ],
+    "functions": {
+        "server/app.py": {
+            "maxDuration": 10
+        }
+    }
 }
